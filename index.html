@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X検索セット - プロトタイプ</title>
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .button.secondary {
+            background: #6c757d;
+        }
+        
+        .result-section {
+            display: none;
+        }
+        
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .share-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .chip {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 15px;
+            font-size: 12px;
+            margin: 3px;
+        }
+        
+        .url-display {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-size: 12px;
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 X検索セット</h1>
+            <p>複数キーワードをワンタップで検索！</p>
+        </div>
+        
+        <div class="card">
+            <div class="input-group">
+                <label>📝 セット名</label>
+                <input type="text" id="setName" placeholder="例：推し完全網羅セット">
+            </div>
+            
+            <div class="input-group">
+                <label>🔑 検索キーワード（改行で区切る）</label>
+                <textarea id="keywords" rows="5" placeholder="眉村&#10;#眉村ちあき&#10;@rexno_chi&#10;マユムラー"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>🚫 除外キーワード（改行で区切る）</label>
+                <textarea id="excludeKeywords" rows="3" placeholder="眉村卓&#10;道垣"></textarea>
+            </div>
+            
+            <button class="button" onclick="testSearch()">🔍 検索をテスト</button>
+            <button class="button secondary" onclick="generateShare()">📤 共有リンク生成</button>
+        </div>
+        
+        <div class="card result-section" id="resultSection">
+            <h3>✨ 共有する</h3>
+            
+            <div class="qr-container">
+                <div id="qrcode"></div>
+                <p style="margin-top: 10px;">QRコードをスキャンまたはURLをシェア</p>
+            </div>
+            
+            <div class="url-display" id="urlDisplay"></div>
+            
+            <div class="share-buttons">
+                <button class="button" onclick="shareX()">Xでシェア</button>
+                <button class="button secondary" onclick="copyURL()">URLコピー</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentURL = '';
+        
+        function testSearch() {
+            const keywords = document.getElementById('keywords').value.split('\n').filter(k => k);
+            const excludeKeywords = document.getElementById('excludeKeywords').value.split('\n').filter(k => k);
+            
+            if (keywords.length === 0) {
+                alert('キーワードを入力してください');
+                return;
+            }
+            
+            const includeQuery = keywords.map(k => `"${encodeURIComponent(k.trim())}"`).join('+OR+');
+            const excludeQuery = excludeKeywords.map(k => `-"${encodeURIComponent(k.trim())}"`).join('+');
+            const query = excludeQuery ? `${includeQuery}+${excludeQuery}` : includeQuery;
+            
+            window.open(`https://x.com/search?q=${query}&f=live`, '_blank');
+        }
+        
+        function generateShare() {
+            const name = document.getElementById('setName').value || '名称未設定';
+            const keywords = document.getElementById('keywords').value.split('\n').filter(k => k);
+            const excludeKeywords = document.getElementById('excludeKeywords').value.split('\n').filter(k => k);
+            
+            if (keywords.length === 0) {
+                alert('キーワードを入力してください');
+                return;
+            }
+            
+            const data = {
+                n: name,
+                k: keywords,
+                e: excludeKeywords
+            };
+            
+            const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
+            currentURL = `${location.origin}${location.pathname}?s=${compressed}`;
+            
+            // QRコード生成
+            const qr = qrcode(0, 'M');
+            qr.addData(currentURL);
+            qr.make();
+            document.getElementById('qrcode').innerHTML = qr.createImgTag(5);
+            
+            // URL表示
+            document.getElementById('urlDisplay').textContent = currentURL;
+            
+            // 結果セクション表示
+            document.getElementById('resultSection').style.display = 'block';
+        }
+        
+        function shareX() {
+            const name = document.getElementById('setName').value || '検索セット';
+            const text = `「${name}」のX検索セットを作りました！`;
+            window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentURL)}`, '_blank');
+        }
+        
+        function copyURL() {
+            navigator.clipboard.writeText(currentURL).then(() => {
+                alert('URLをコピーしました！');
+            });
+        }
+        
+        // インポート処理
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(location.search);
+            const compressed = params.get('s');
+            if (compressed) {
+                try {
+                    const json = LZString.decompressFromEncodedURIComponent(compressed);
+                    const data = JSON.parse(json);
+                    
+                    if (confirm(`「${data.n}」をインポートしますか？`)) {
+                        document.getElementById('setName').value = data.n;
+                        document.getElementById('keywords').value = data.k.join('\n');
+                        document.getElementById('excludeKeywords').value = (data.e || []).join('\n');
+                        history.replaceState(null, '', location.pathname);
+                        alert('インポート完了！');
+                    }
+                } catch (e) {
+                    console.error('インポートエラー:', e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
