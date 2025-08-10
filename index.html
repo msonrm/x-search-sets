@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X検索セット - プロトタイプ</title>
+    <title>さがすん - 検索をもっといい感じに</title>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
@@ -187,22 +187,22 @@
         <div class="card">
             <div class="input-group">
                 <label>📝 セット名</label>
-                <input type="text" id="setName" placeholder="例：推し完全網羅セット">
+                <input type="text" id="setName" placeholder="例：推し海外文学作家">
             </div>
             
             <div class="input-group">
                 <label>🔑 検索キーワード（改行で区切る）</label>
-                <textarea id="keywords" rows="5" placeholder="眉村&#10;#眉村ちあき&#10;@rexno_chi&#10;マユムラー"></textarea>
+                <textarea id="keywords" rows="5" placeholder="ミルハウザー&#10;#カルヴィーノ&#10;ピンチョン&#10;ジョイス"></textarea>
             </div>
             
             <div class="input-group">
                 <label>🚫 除外キーワード（改行で区切る）</label>
-                <textarea id="excludeKeywords" rows="3" placeholder="眉村卓&#10;道垣"></textarea>
+                <textarea id="excludeKeywords" rows="3" placeholder="ジョイスティック"></textarea>
             </div>
             
-            <button class="button" onclick="testSearch()">🔍 検索をテスト</button>
-            <button class="button secondary" onclick="saveToLocal()">💾 保存</button>
-            <button class="button secondary" onclick="generateShare()">📤 共有リンク生成</button>
+            <button class="button" onclick="testSearch()">🔍 検索してみる</button>
+            <button class="button secondary" onclick="saveToLocal()">💾 検索ワードセットを保存</button>
+            <button class="button secondary" onclick="generateShare()">📤 共有リンクを生成</button>
         </div>
         
         <div class="card result-section" id="resultSection">
@@ -222,7 +222,7 @@
         </div>
         
         <div class="saved-sets" id="savedSets" style="display: none;">
-            <h3>📚 保存したセット</h3>
+            <h3>📚 保存した検索ワードセット</h3>
             <div id="setsList"></div>
         </div>
     </div>
@@ -365,7 +365,7 @@
         
         function shareX() {
             const name = document.getElementById('setName').value || '検索セット';
-            const text = `「${name}」のX検索セットを作りました！`;
+            const text = `「${name}」の検索ワードセットを作りました！`;
             window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentURL)}`, '_blank');
         }
         
