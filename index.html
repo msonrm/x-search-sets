@@ -131,6 +131,50 @@
             color: #666;
             margin: 10px 0;
         }
+        
+        .saved-sets {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .set-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .set-info h4 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .set-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .mini-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .mini-button:hover {
+            background: #764ba2;
+        }
     </style>
 </head>
 <body>
@@ -153,10 +197,11 @@
             
             <div class="input-group">
                 <label>🚫 除外キーワード（改行で区切る）</label>
-                <textarea id="excludeKeywords" rows="3" placeholder="眉村卓&#10;道塁"></textarea>
+                <textarea id="excludeKeywords" rows="3" placeholder="眉村卓&#10;道垣"></textarea>
             </div>
             
             <button class="button" onclick="testSearch()">🔍 検索をテスト</button>
+            <button class="button secondary" onclick="saveToLocal()">💾 保存</button>
             <button class="button secondary" onclick="generateShare()">📤 共有リンク生成</button>
         </div>
         
@@ -174,6 +219,11 @@
                 <button class="button" onclick="shareX()">Xでシェア</button>
                 <button class="button secondary" onclick="copyURL()">URLコピー</button>
             </div>
+        </div>
+        
+        <div class="saved-sets" id="savedSets" style="display: none;">
+            <h3>📚 保存したセット</h3>
+            <div id="setsList"></div>
         </div>
     </div>
     
@@ -193,7 +243,89 @@
             const excludeQuery = excludeKeywords.map(k => `-"${encodeURIComponent(k.trim())}"`).join('+');
             const query = excludeQuery ? `${includeQuery}+${excludeQuery}` : includeQuery;
             
-            window.open(`https://x.com/search?q=${query}&f=live`, '_blank');
+            // 指定された形式のURL
+            window.open(`https://x.com/search?q=${query}&src=typd&f=tweets&vertical=default`, '_blank');
+        }
+        
+        function saveToLocal() {
+            const name = document.getElementById('setName').value || '名称未設定';
+            const keywords = document.getElementById('keywords').value.split('\n').filter(k => k);
+            const excludeKeywords = document.getElementById('excludeKeywords').value.split('\n').filter(k => k);
+            
+            if (keywords.length === 0) {
+                alert('キーワードを入力してください');
+                return;
+            }
+            
+            const sets = JSON.parse(localStorage.getItem('searchSets') || '[]');
+            const newSet = {
+                id: Date.now(),
+                name: name,
+                keywords: keywords,
+                excludeKeywords: excludeKeywords,
+                createdAt: new Date().toLocaleDateString()
+            };
+            
+            sets.unshift(newSet);
+            localStorage.setItem('searchSets', JSON.stringify(sets));
+            
+            alert('保存しました！');
+            loadSavedSets();
+        }
+        
+        function loadSavedSets() {
+            const sets = JSON.parse(localStorage.getItem('searchSets') || '[]');
+            
+            if (sets.length === 0) {
+                document.getElementById('savedSets').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('savedSets').style.display = 'block';
+            
+            const html = sets.map(set => `
+                <div class="set-item">
+                    <div class="set-info">
+                        <h4>${set.name}</h4>
+                        <div class="set-keywords">
+                            ${set.keywords.slice(0, 3).map(k => `<span class="chip">${k}</span>`).join('')}
+                            ${set.keywords.length > 3 ? `<span class="chip">+${set.keywords.length - 3}</span>` : ''}
+                        </div>
+                    </div>
+                    <div>
+                        <button class="mini-button" onclick="loadSet(${set.id})">読込</button>
+                        <button class="mini-button" onclick="searchWithSet(${set.id})">検索</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('setsList').innerHTML = html;
+        }
+        
+        function loadSet(id) {
+            const sets = JSON.parse(localStorage.getItem('searchSets') || '[]');
+            const set = sets.find(s => s.id === id);
+            
+            if (set) {
+                document.getElementById('setName').value = set.name;
+                document.getElementById('keywords').value = set.keywords.join('\n');
+                document.getElementById('excludeKeywords').value = set.excludeKeywords.join('\n');
+                window.scrollTo(0, 0);
+            }
+        }
+        
+        function searchWithSet(id) {
+            const sets = JSON.parse(localStorage.getItem('searchSets') || '[]');
+            const set = sets.find(s => s.id === id);
+            
+            if (set) {
+                const includeQuery = set.keywords.map(k => `"${encodeURIComponent(k)}"`).join('+OR+');
+                const excludeQuery = set.excludeKeywords.map(k => `-"${encodeURIComponent(k)}"`).join('+');
+                const query = excludeQuery ? `${includeQuery}+${excludeQuery}` : includeQuery;
+                
+                // 指定された形式のURL
+                window.open(`https://x.com/search?q=${query}&src=typd&f=tweets&vertical=default`, '_blank');
+            }
         }
         
         function generateShare() {
@@ -226,6 +358,9 @@
             
             // 結果セクション表示
             document.getElementById('resultSection').style.display = 'block';
+            
+            // 結果セクションまでスクロール
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
         }
         
         function shareX() {
@@ -237,6 +372,15 @@
         function copyURL() {
             navigator.clipboard.writeText(currentURL).then(() => {
                 alert('URLをコピーしました！');
+            }).catch(err => {
+                // フォールバック
+                const textArea = document.createElement('textarea');
+                textArea.value = currentURL;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('URLをコピーしました！');
             });
         }
         
@@ -244,6 +388,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(location.search);
             const compressed = params.get('s');
+            
             if (compressed) {
                 try {
                     const json = LZString.decompressFromEncodedURIComponent(compressed);
@@ -260,6 +405,9 @@
                     console.error('インポートエラー:', e);
                 }
             }
+            
+            // 保存済みセットを読み込み
+            loadSavedSets();
         });
     </script>
 </body>
