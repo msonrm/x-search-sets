@@ -27,106 +27,148 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+            background: #f2f2f7;
             min-height: 100vh;
-            padding: 20px;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
+            padding: 0;
+            padding-top: max(env(safe-area-inset-top), 44px);
+            padding-bottom: max(env(safe-area-inset-bottom), 20px);
+            color: #1c1c1e;
         }
         
         .container {
-            max-width: 600px;
+            max-width: 428px;
             margin: 0 auto;
+            padding: 0 16px;
         }
         
         .header {
             text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            position: relative;
+            margin-bottom: 32px;
+            padding: 20px 0;
         }
         
         .header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
+            font-size: 34px;
+            font-weight: 700;
+            color: #1c1c1e;
+            margin-bottom: 8px;
+            letter-spacing: -0.8px;
+        }
+        
+        .header p {
+            font-size: 17px;
+            color: #8e8e93;
+            font-weight: 400;
         }
         
         .install-prompt {
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            padding: 12px;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(0, 0, 0, 0.04);
+            color: #1c1c1e;
+            padding: 16px;
+            border-radius: 16px;
             margin-bottom: 20px;
             display: none;
             align-items: center;
             justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .install-prompt button {
-            background: #667eea;
+            background: #007aff;
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 20px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
         }
         
         .card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(0, 0, 0, 0.04);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 24px;
         }
         
         .input-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 17px;
+            color: #1c1c1e;
         }
         
         .input-group input,
         .input-group textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            padding: 16px;
+            border: none;
+            background: #f2f2f7;
+            border-radius: 12px;
+            font-size: 17px;
+            color: #1c1c1e;
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+            resize: none;
         }
         
         .input-group input:focus,
         .input-group textarea:focus {
             outline: none;
-            border-color: #667eea;
+            background: #e5e5ea;
+            transform: scale(1.01);
+        }
+        
+        .input-group input::placeholder,
+        .input-group textarea::placeholder {
+            color: #8e8e93;
         }
         
         .button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #007aff;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: bold;
+            padding: 16px 24px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s ease;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 12px;
+            letter-spacing: -0.2px;
         }
         
-        .button:hover {
-            transform: translateY(-2px);
+        .button:active {
+            transform: scale(0.98);
+            background: #0056b3;
         }
         
         .button.secondary {
-            background: #6c757d;
+            background: #8e8e93;
+        }
+        
+        .button.secondary:active {
+            background: #6d6d70;
+        }
+        
+        .button.destructive {
+            background: #ff3b30;
+        }
+        
+        .button.destructive:active {
+            background: #d70015;
         }
         
         .result-section {
@@ -135,104 +177,220 @@
         
         .qr-container {
             text-align: center;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
+            padding: 24px;
+            background: #f2f2f7;
+            border-radius: 16px;
             margin: 20px 0;
+        }
+        
+        .qr-container p {
+            margin-top: 16px;
+            font-size: 15px;
+            color: #8e8e93;
         }
         
         .share-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
             margin-top: 20px;
         }
         
         .chip {
             display: inline-block;
-            padding: 5px 12px;
-            background: #e3f2fd;
-            color: #1976d2;
-            border-radius: 15px;
-            font-size: 12px;
-            margin: 3px;
+            padding: 6px 12px;
+            background: rgba(0, 122, 255, 0.1);
+            color: #007aff;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 4px;
         }
         
         .url-display {
-            background: #f5f5f5;
-            padding: 10px;
-            border-radius: 5px;
+            background: #f2f2f7;
+            padding: 16px;
+            border-radius: 12px;
             word-break: break-all;
-            font-size: 12px;
-            color: #666;
-            margin: 10px 0;
+            font-size: 13px;
+            color: #8e8e93;
+            margin: 16px 0;
+            font-family: 'SF Mono', 'Monaco', monospace;
         }
         
         .saved-sets {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(0, 0, 0, 0.04);
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .saved-sets h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1c1c1e;
+            margin-bottom: 20px;
+            letter-spacing: -0.4px;
         }
         
         .set-item {
-            padding: 15px;
-            margin: 10px 0;
-            background: #f8f9fa;
-            border-radius: 10px;
+            padding: 16px;
+            margin: 12px 0;
+            background: #f2f2f7;
+            border-radius: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
         .set-info h4 {
-            margin-bottom: 5px;
-            color: #333;
+            margin-bottom: 8px;
+            color: #1c1c1e;
+            font-size: 17px;
+            font-weight: 600;
         }
         
         .set-keywords {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 5px;
+            gap: 6px;
+            margin-top: 8px;
         }
         
         .mini-button {
-            background: #667eea;
+            background: #007aff;
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            margin-left: 5px;
+            margin-left: 8px;
+            transition: all 0.2s ease;
         }
         
-        .mini-button:hover {
-            background: #764ba2;
+        .mini-button:active {
+            transform: scale(0.95);
+            background: #0056b3;
         }
         
         .status-indicator {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: max(env(safe-area-inset-top), 44px);
+            top: calc(max(env(safe-area-inset-top), 44px) + 16px);
+            right: 16px;
             background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 500;
             display: none;
             z-index: 1000;
+            max-width: 280px;
         }
         
         .offline-indicator {
-            background: #f44336;
+            background: rgba(255, 59, 48, 0.9);
         }
         
         .update-indicator {
-            background: #4caf50;
+            background: rgba(52, 199, 89, 0.9);
             cursor: pointer;
+        }
+        
+        /* iOS風のセクション見出し */
+        .section-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1c1c1e;
+            margin-bottom: 16px;
+            letter-spacing: -0.4px;
+        }
+        
+        /* iOS風のグループ化されたリスト */
+        .grouped-list {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(0, 0, 0, 0.04);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .list-item {
+            padding: 16px 20px;
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.04);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s ease;
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .list-item:active {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        /* ダークモード対応 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #000000;
+                color: #ffffff;
+            }
+            
+            .header h1 {
+                color: #ffffff;
+            }
+            
+            .header p {
+                color: #8e8e93;
+            }
+            
+            .card,
+            .saved-sets,
+            .install-prompt,
+            .grouped-list {
+                background: rgba(28, 28, 30, 0.95);
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+            
+            .input-group input,
+            .input-group textarea {
+                background: #1c1c1e;
+                color: #ffffff;
+            }
+            
+            .input-group input:focus,
+            .input-group textarea:focus {
+                background: #2c2c2e;
+            }
+            
+            .qr-container,
+            .url-display,
+            .set-item {
+                background: #1c1c1e;
+            }
+            
+            .chip {
+                background: rgba(0, 122, 255, 0.2);
+            }
+            
+            .list-item {
+                border-bottom-color: rgba(255, 255, 255, 0.1);
+            }
+            
+            .list-item:active {
+                background: rgba(255, 255, 255, 0.1);
+            }
         }
     </style>
 </head>
@@ -273,11 +431,11 @@
         </div>
         
         <div class="card result-section" id="resultSection">
-            <h3>✨ 共有する</h3>
+            <h3 class="section-header">✨ 共有する</h3>
             
             <div class="qr-container">
                 <div id="qrcode"></div>
-                <p style="margin-top: 10px;">QRコードをスキャンまたはURLをシェア</p>
+                <p>QRコードをスキャンまたはURLをシェア</p>
             </div>
             
             <div class="url-display" id="urlDisplay"></div>
@@ -289,7 +447,7 @@
         </div>
         
         <div class="saved-sets" id="savedSets" style="display: none;">
-            <h3>📚 保存した検索ワードセット</h3>
+            <h3 class="section-header">📚 保存した検索ワードセット</h3>
             <div id="setsList"></div>
         </div>
     </div>
@@ -533,6 +691,9 @@
                     title: 'さがすんX',
                     text: text,
                     url: currentURL
+                }).catch((error) => {
+                    // Web Share API失敗時のフォールバック
+                    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentURL)}`, '_blank');
                 });
             } else {
                 window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentURL)}`, '_blank');
