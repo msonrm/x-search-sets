@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>さがすんX</title>
+    
+    <!-- PWA設定 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="さがすんX">
+    
+    <!-- アイコン設定 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icon-192.png">
+    
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
@@ -18,6 +31,8 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
         
         .container {
@@ -29,11 +44,32 @@
             text-align: center;
             color: white;
             margin-bottom: 30px;
+            position: relative;
         }
         
         .header h1 {
             font-size: 2em;
             margin-bottom: 10px;
+        }
+        
+        .install-prompt {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .install-prompt button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
         }
         
         .card {
@@ -170,18 +206,49 @@
             border-radius: 20px;
             font-size: 14px;
             cursor: pointer;
+            margin-left: 5px;
         }
         
         .mini-button:hover {
             background: #764ba2;
         }
+        
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .offline-indicator {
+            background: #f44336;
+        }
+        
+        .update-indicator {
+            background: #4caf50;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div class="status-indicator" id="statusIndicator"></div>
+    
     <div class="container">
         <div class="header">
             <h1>さがすんX - 検索をもっといい感じに</h1>
             <p>複数キーワードを一度に検索しよう</p>
+            
+            <div class="install-prompt" id="installPrompt">
+                <span>📱 ホーム画面に追加しますか？</span>
+                <button onclick="installApp()">追加</button>
+                <button onclick="dismissInstall()" style="background: #6c757d; margin-left: 10px;">後で</button>
+            </div>
         </div>
         
         <div class="card">
@@ -229,6 +296,102 @@
     
     <script>
         let currentURL = '';
+        let deferredPrompt;
+        let updateAvailable = false;
+        
+        // Service Worker登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('SW registered: ', registration);
+                    
+                    // アップデート確認
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateAvailable();
+                            }
+                        });
+                    });
+                } catch (registrationError) {
+                    console.log('SW registration failed: ', registrationError);
+                }
+            });
+        }
+        
+        // インストールプロンプト
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // インストール済みかチェック
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                return;
+            }
+            
+            document.getElementById('installPrompt').style.display = 'flex';
+        });
+        
+        // PWAインストール後
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            document.getElementById('installPrompt').style.display = 'none';
+        });
+        
+        // オフライン/オンライン状態監視
+        window.addEventListener('online', () => {
+            hideStatus();
+        });
+        
+        window.addEventListener('offline', () => {
+            showStatus('📡 オフラインモード', 'offline-indicator');
+        });
+        
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installPrompt').style.display = 'none';
+                });
+            }
+        }
+        
+        function dismissInstall() {
+            document.getElementById('installPrompt').style.display = 'none';
+            localStorage.setItem('installDismissed', Date.now());
+        }
+        
+        function showUpdateAvailable() {
+            updateAvailable = true;
+            showStatus('🔄 更新版が利用可能です（クリックで更新）', 'update-indicator');
+            document.getElementById('statusIndicator').onclick = () => {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistration().then(reg => {
+                        if (reg && reg.waiting) {
+                            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                            window.location.reload();
+                        }
+                    });
+                }
+            };
+        }
+        
+        function showStatus(message, className = '') {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.textContent = message;
+            indicator.className = `status-indicator ${className}`;
+            indicator.style.display = 'block';
+        }
+        
+        function hideStatus() {
+            document.getElementById('statusIndicator').style.display = 'none';
+        }
         
         function testSearch() {
             const keywords = document.getElementById('keywords').value.split('\n').filter(k => k);
@@ -243,7 +406,6 @@
             const excludeQuery = excludeKeywords.map(k => `-"${encodeURIComponent(k.trim())}"`).join('+');
             const query = excludeQuery ? `${includeQuery}+${excludeQuery}` : includeQuery;
             
-            // 指定された形式のURL
             window.open(`https://x.com/search?q=${query}&src=typd&f=tweets&vertical=default`, '_blank');
         }
         
@@ -323,7 +485,6 @@
                 const excludeQuery = set.excludeKeywords.map(k => `-"${encodeURIComponent(k)}"`).join('+');
                 const query = excludeQuery ? `${includeQuery}+${excludeQuery}` : includeQuery;
                 
-                // 指定された形式のURL
                 window.open(`https://x.com/search?q=${query}&src=typd&f=tweets&vertical=default`, '_blank');
             }
         }
@@ -366,7 +527,16 @@
         function shareX() {
             const name = document.getElementById('setName').value || '検索セット';
             const text = `「${name}」の検索ワードセットを作りました！`;
-            window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentURL)}`, '_blank');
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'さがすんX',
+                    text: text,
+                    url: currentURL
+                });
+            } else {
+                window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentURL)}`, '_blank');
+            }
         }
         
         function copyURL() {
@@ -408,6 +578,13 @@
             
             // 保存済みセットを読み込み
             loadSavedSets();
+            
+            // インストールプロンプトの表示判定
+            const dismissed = localStorage.getItem('installDismissed');
+            if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) {
+                // 7日以内に却下されている場合は表示しない
+                return;
+            }
         });
     </script>
 </body>
